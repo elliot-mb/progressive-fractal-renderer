@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>canvas template</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body>
+    <div id="container">
+      <div class="overlap">
+        <canvas id="canvas" width="1920" height="1200">
+        </canvas>
+        <div class="text-box">
+          <p class="status-text" 
+             id="stop-button" 
+             onclick="stop()">
+             running tests...
+          </p>
+          <p>
+            'A' and 'D' to rotate offset<br>
+            'S' to switch render mode<br>
+            'W' to stop iteration increase<br>
+            'E' to resume iteration increase<br>
+            Drag to pan<br>
+            Scroll to zoom
+          </p>
+        </div>
+        <!-- ######################################################## 
+             ###                 Source modules                   ###
+             ######################################################## -->        
+        <script src="src/rgba.js"></script>
+        <script src="src/utils.js"></script>
+        <script src="src/coord.js"></script>
+        <script src="src/key_handler.js"></script>
+        <script src="src/cursor_handler.js"></script>
+        <script src="src/complex.js"></script>        
+        <script src="src/text_display.js"></script>
+        <script src="src/fractal_painter.js"></script>
+
+        <script src="src/filler.js"></script>
+
+        
+        <!-- ######################################################## 
+             ### Uncomment test scripts to unit-test the program. ### 
+             ######################################################## -->
+        <script src="test/testing_lib.js"></script>
+        <script src="test/unit/test_maths.js"></script>
+        <script src="test/unit/test_pointer_lock.js"></script>
+        <script src="test/unit/test_coordinate.js"></script>
+        <!-- Next test. -->
+        <script src="test/test.js"></script>
+
+        <!-- ######################################################## 
+             ###             Uncomment to run main.               ### 
+             ######################################################## -->
+        <script src="src/main.js" defer></script>
+      </div>
+    </div>
+</body>
+</html>
