@@ -36,6 +36,7 @@ class fractal_painter
   static #angle_offset = 7 * Math.PI / 6;
 
   static #COLOUR_CYCLE_FREQUENCY = 50;
+  static #BLACK = new rgba(0, 0, 0, 255);
 
   /**
    * 
@@ -187,11 +188,14 @@ class fractal_painter
 
   /**
    * 
-   * @param {integer} px_x between 0 and 1 - maximum x value
-   * @param {integer} px_y between 0 and 1 - maximum y value
+   * @param {integer} px_x       between 0 and 1 - maximum x value
+   * @param {integer} px_y       between 0 and 1 - maximum y value
+   * @param {boolean} use_cache  Allows the function to draw on pre-computed iteration values. 
+   * @param {boolean} process_pixel Allows the function to compute the colour of a pixel. If it does not exist in 
+   *                                the cache already it is returned black.
    * @returns {rgba} The colour for this pixel.
    */
-  static paint(px_x, px_y, use_cache = true)
+  static paint(px_x, px_y, use_cache = true, process_pixel = true)
   {
 
     const iter_cache_val = fractal_painter.#iteration_cache[px_y][px_x];
@@ -202,6 +206,10 @@ class fractal_painter
        && (iter_cache_val < fractal_painter.#max_iterations))
     {
       return fractal_painter.get_colour(enum_cache_val, iter_cache_val);
+    }
+    else if(!process_pixel)
+    {
+      return fractal_painter.#BLACK;
     }
 
     /* Centre pixel on canvas origin. */

@@ -65,7 +65,8 @@ window.addEventListener('keydown', (event) => {
   { 
     fractal_painter.cycle_colour_method(); 
     text_display.set_render_mode(fractal_painter.get_render_mode_name());
-    register_update();
+    render_computed_view();
+    //register_update();
   } 
   if(event.key === 'a')
   {
@@ -82,10 +83,13 @@ window.addEventListener('keydown', (event) => {
   if(event.key === 'w')
   {
     has_requested_stop = true;
+    text_display.set_stopping_increase();
   }
   if(event.key === 'e')
   {
     has_requested_stop = false;
+    text_display.set_increasing();
+    text_display.set_active();
   }
 }, true);
 
@@ -138,7 +142,19 @@ function register_update()
   fill.initialise_render_lists();
 }
 
-
+/* Refresh all pixels using just the computed values. */
+function render_computed_view()
+{
+  for(let y = 0; y < utils.CANVAS_HEIGHT; y++)
+  {
+    for(let x = 0; x < utils.CANVAS_WIDTH; x++)
+    {
+      const col = fractal_painter.paint(x, y, true, false);
+      utils.set_pixel_by_x_y(x, y, col);
+    }
+  }
+  utils.update_pixels();
+}
 
 function render_pixelated_view()
 {
@@ -198,7 +214,7 @@ function main_loop(timestamp)
     if(!has_reset_cache_in_render_cycle)
     {
       /* Wipe the low-res fractal image. */
-      fractal_painter.set_max_iterations(50);
+      fractal_painter.reset_iterations();
       fractal_painter.reset_cache();
       utils.clear_pixels();
       has_reset_cache_in_render_cycle = true;
@@ -210,7 +226,7 @@ function main_loop(timestamp)
     utils.update_pixels();
   }
   /* Reached the end of an iteration count, increase detail and set to draw again (will set the above case true). */
-  else if(!fill.is_unsolved_list_empty())
+  else if(!fill.is_unsolved_list_empty() && !has_requested_stop)
   {
     /* THEN reset the render list, because doing this clears the unsolved cache. */
     fill.initialise_render_lists_from_unsolved();

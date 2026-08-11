@@ -11,6 +11,8 @@ class text_display
 
   static #is_idle = false;
 
+  static #iteration_increase = true;
+
   static #iter_count = 0;
 
   static #frame_id = 0;
@@ -28,9 +30,9 @@ class text_display
                                         `${text_display.#iter_count} iterations ` +
                                         `${text_display.#is_idle 
                                         ? 'idle'
-                                        : text_display.#spinner_frames[
+                                        : (`${text_display.#spinner_frames[
                                         text_display.#frame_id % text_display.#spinner_frame_num
-                                      ]}`;
+                                      ]} ${text_display.#iteration_increase ? '' : '(stopping)'}`)}`;
     }
   }
 
@@ -80,5 +82,15 @@ class text_display
   static set_iter_count(iter_count)
   {
     text_display.#iter_count = iter_count;
+  }
+
+  static set_stopping_increase()
+  {
+    text_display.#iteration_increase = false;
+  }
+
+  static set_increasing()
+  {
+    text_display.#iteration_increase = true;
   }
 }
