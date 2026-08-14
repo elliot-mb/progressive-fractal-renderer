@@ -1,6 +1,12 @@
 # Fractal Explorer
 
-To run this website, download and unzip this repository and open index.html.
+<img src="images/tricolore_600x375.png" width="375px">
+
+A progressive fractal renderer in pure javascript, with highly modifiable generation and colouring settings. 
+
+## Running
+
+Until this website is hosted, you may download and unzip this repository and open index.html.
 
 ## Controls
 
@@ -8,3 +14,4 @@ To run this website, download and unzip this repository and open index.html.
 - Scroll up to zoom in, down to zoom out.
 - Hold *a* to move *c* around a circle of size 0.7885, or *d* to decrease it. 
 - Press *w* to stop increasing iterations, and *e* to begin again if the fractal has not solved all pixels on-screen.
+- Hold *r* to increase the radius of the circle, and *f* to decrease it. 
