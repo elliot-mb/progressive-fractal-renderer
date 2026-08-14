@@ -4,11 +4,9 @@
  */
 
 /* Primitive constants. */
-const PIXEL_SIZE = 16; //px
-/* How many pixels to skip per frame. */
-const PROGRESSION_STRIDE = PIXEL_SIZE;
+const PIXEL_SIZE = Math.round(2.0e-2 * Math.max(utils.CANVAS_HEIGHT, utils.CANVAS_WIDTH)); //px
 /* Painter inputs. */
-const C_RADIUS = 0.7885;
+const C_INIT_RADIUS = 0.7885;
 const C_ARG    = Math.PI;
 const C_SPEED  = 0.001;
 /* Cursor pan speed. */
@@ -20,18 +18,12 @@ const PIXEL_VIEW_DURATION = 1000; //ms
 const PIXEL_OFFSET = Math.floor(PIXEL_SIZE / 2);
 
 const USE_LO_RES_PREVIEW = true;
-const CHANNEL_STRIDE     = USE_LO_RES_PREVIEW ? PROGRESSION_STRIDE * utils.CHAN_PER_PIXEL : utils.CHAN_PER_PIXEL;
-
-const SQUARE_SIZE        = utils.gcd(utils.CANVAS_WIDTH, utils.CANVAS_HEIGHT);
-const SQUARES_IN_IMAGE   = (utils.CANVAS_WIDTH * utils.CANVAS_HEIGHT) / (SQUARE_SIZE * SQUARE_SIZE);
-const SQUARES_ON_WIDTH   = utils.CANVAS_WIDTH / SQUARE_SIZE;
-const SQUARES_ON_HEIGHT  = utils.CANVAS_HEIGHT / SQUARE_SIZE;
 
 let delta_time;
 let prev_time         = 0;
 /* This is true each time after a reset from changing the view. */
 let is_just_changed = true;
-let has_reset_cache_in_render_cycle = false;
+let rendering_detailed_view = false;
 let show_render_square = true;
 let has_requested_stop = false;
 let last_update     = 0; //ms (time)
@@ -41,9 +33,15 @@ let is_mouse_down = false;
 let c_offset = 0.1;
 let finish_render_time = 0;
 
+/* Render computed view interval for cancelling until we have left it long enough. */
+let computed_view_interval_id = 0;
+const COMPUTED_VIEW_TIMEOUT = 500;
+const computed_view_is_running = false;
+
 /* Constant references. */
 const key_state = new key_handler();
-const painter = new fractal_painter(complex.exp(C_RADIUS, C_ARG + c_offset));
+const painter = new fractal_painter(complex.exp(C_INIT_RADIUS, C_ARG + c_offset));
+text_display.set_offset(fractal_painter.get_c());
 const keys_to_track = ['w', 
                        's', 
                        'a', 
@@ -61,36 +59,76 @@ document.addEventListener('mousedown', () => {is_mouse_down = true;}, true);
 document.addEventListener('mouseup', () => {is_mouse_down = false;}, true);
 window.addEventListener('wheel', zoom, true);
 window.addEventListener('keydown', (event) => {
-  if(event.key === 's') 
+  const event_key_lower = event.key.toLowerCase();
+  if(event_key_lower === 's') 
   { 
     fractal_painter.cycle_colour_method(); 
     text_display.set_render_mode(fractal_painter.get_render_mode_name());
-    render_computed_view();
+    if(rendering_detailed_view && !computed_view_is_running)
+    {
+      if(computed_view_interval_id !== 0)
+      {
+        clearTimeout(computed_view_interval_id);
+      }
+      computed_view_interval_id = setTimeout(render_computed_view, COMPUTED_VIEW_TIMEOUT);
+    }
     //register_update();
   } 
-  if(event.key === 'a')
+  if(event_key_lower === 'a')
   {
     c_offset += C_SPEED;    
-    fractal_painter.set_c(complex.exp(C_RADIUS, C_ARG + c_offset));
+    const mag = fractal_painter.get_c().mag();
+    fractal_painter.set_c(complex.exp(mag, C_ARG + c_offset));
     register_update();
   }
-  if(event.key === 'd')
+  if(event_key_lower === 'd')
   {
-    c_offset -= C_SPEED;    
-    fractal_painter.set_c(complex.exp(C_RADIUS, C_ARG + c_offset));
+    c_offset -= C_SPEED;   
+    const mag = fractal_painter.get_c().mag(); 
+    console.log(mag);
+    fractal_painter.set_c(complex.exp(mag, C_ARG + c_offset));
     register_update();
   }
-  if(event.key === 'w')
+  if(event_key_lower === 'w')
   {
     has_requested_stop = true;
     text_display.set_stopping_increase();
   }
-  if(event.key === 'e')
+  if(event_key_lower === 'e')
   {
     has_requested_stop = false;
     text_display.set_increasing();
     text_display.set_active();
   }
+  /* Increase radius of c. */
+  if(event_key_lower === 'r')
+  {
+    const c = fractal_painter.get_c();
+    let del_c = new complex(0, 0);
+    if(c.mag() > 0)
+    {
+      /* C_SPEED length c. */
+      del_c = (new complex(c.a, c.b)).scale(1/c.mag()).scale(C_SPEED);
+    }
+    fractal_painter.set_c(c.add(del_c));
+    register_update();
+  }
+  /* Decrease radius of c. */
+  if(event_key_lower === 'f')
+  {
+    const c = fractal_painter.get_c();
+    let del_c = new complex(0, 0);
+    if(c.mag() > 0)
+    {
+      /* C_SPEED length c. */
+      del_c = (new complex(c.a, c.b)).scale(1/c.mag()).scale(C_SPEED);
+    }
+    fractal_painter.set_c(c.sub(del_c));
+    register_update();
+  }
+
+  /* Update the display in case it changes. */
+  text_display.set_offset(fractal_painter.get_c());
 }, true);
 
 /**
@@ -136,7 +174,7 @@ function register_update()
 {
   has_requested_stop = false;
   is_just_changed = USE_LO_RES_PREVIEW;
-  has_reset_cache_in_render_cycle = false;
+  rendering_detailed_view = false;
   text_display.set_active();
   fractal_painter.set_max_iterations(50);
   fill.initialise_render_lists();
@@ -158,32 +196,13 @@ function render_computed_view()
 
 function render_pixelated_view()
 {
-  for(let y = 0; y < utils.CANVAS_HEIGHT; y += PIXEL_SIZE)
+  for(let y = 0; y <= utils.CANVAS_HEIGHT - PIXEL_SIZE; y += PIXEL_SIZE)
   {
-    for(let x = 0; x < utils.CANVAS_WIDTH; x += PIXEL_SIZE)
+    for(let x = 0; x <= utils.CANVAS_WIDTH - PIXEL_SIZE; x += PIXEL_SIZE)
     {
       const col = fractal_painter.paint(x + PIXEL_OFFSET, y + PIXEL_OFFSET, false);
       utils.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.a})`;
       utils.ctx.fillRect(x, y, PIXEL_SIZE, PIXEL_SIZE);
-    }
-  }
-}
-
-/**
- * Render the contents of a square with top-left corner x, y.
- * @param {*} x Top-left x. 
- * @param {*} y Top-left y.
- * @param {*} w
- * @param {*} h
- */
-function render_rect(x, y, w, h)
-{
-  for(let x_s = x; x_s < x + w; x_s++)
-  {
-    for(let y_s = y; y_s < y + h; y_s++)
-    {
-      const col = fractal_painter.paint(x_s, y_s);
-      utils.set_pixel_by_x_y(x_s, y_s, col);
     }
   }
 }
@@ -211,13 +230,13 @@ function main_loop(timestamp)
   else if(!fill.is_render_list_empty())
   {
 
-    if(!has_reset_cache_in_render_cycle)
+    if(!rendering_detailed_view)
     {
       /* Wipe the low-res fractal image. */
       fractal_painter.reset_iterations();
       fractal_painter.reset_cache();
       utils.clear_pixels();
-      has_reset_cache_in_render_cycle = true;
+      rendering_detailed_view = true;
     }
 
     fill.render_one_cycle();

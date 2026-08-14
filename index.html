@@ -4,59 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>canvas template</title>
+    <title>Fractal Explorer</title>
     <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="images/logo_trispoke_32x32.ico">
 </head>
 <body>
-    <div id="container">
-      <div class="overlap">
-        <canvas id="canvas" width="1920" height="1200">
-        </canvas>
-        <div class="text-box">
-          <p class="status-text" 
-             id="stop-button" 
-             onclick="stop()">
-             running tests...
-          </p>
-          <p>
-            'A' and 'D' to rotate offset<br>
-            'S' to switch render mode<br>
-            'W' to stop iteration increase<br>
-            'E' to resume iteration increase<br>
-            Drag to pan<br>
-            Scroll to zoom
-          </p>
-        </div>
-        <!-- ######################################################## 
-             ###                 Source modules                   ###
-             ######################################################## -->        
-        <script src="src/rgba.js"></script>
-        <script src="src/utils.js"></script>
-        <script src="src/coord.js"></script>
-        <script src="src/key_handler.js"></script>
-        <script src="src/cursor_handler.js"></script>
-        <script src="src/complex.js"></script>        
-        <script src="src/text_display.js"></script>
-        <script src="src/fractal_painter.js"></script>
-
-        <script src="src/filler.js"></script>
-
-        
-        <!-- ######################################################## 
-             ### Uncomment test scripts to unit-test the program. ### 
-             ######################################################## -->
-        <script src="test/testing_lib.js"></script>
-        <script src="test/unit/test_maths.js"></script>
-        <script src="test/unit/test_pointer_lock.js"></script>
-        <script src="test/unit/test_coordinate.js"></script>
-        <!-- Next test. -->
-        <script src="test/test.js"></script>
-
-        <!-- ######################################################## 
-             ###             Uncomment to run main.               ### 
-             ######################################################## -->
-        <script src="src/main.js" defer></script>
-      </div>
+  <div class="header">
+    <h1>Fractal Renderer</h1>
+  </div>
+  <div class="carousel in-phase">
+    <div>
+      <img src="images/angel_600x375.png">
     </div>
+    <div>
+      <img src="images/bejeweled_spiral_600x375.png">
+    </div>
+    <div>
+      <img src="images/carpet_600x375.png">
+    </div>
+    <div>
+      <img src="images/dust_600x375.png">
+    </div>
+    <div>
+      <img src="images/fracture_600x375.png">
+    </div>
+    <div>
+      <img src="images/gem_alert_600x375.png">
+    </div>
+    <div>
+      <img src="images/hades_600x375.png">
+    </div>
+    <div>
+      <img src="images/lowest_to_highest_res_600x375.png">
+    </div>
+    <div>
+      <img src="images/pillbox_600x375.png">
+    </div>
+    <div>
+      <img src="images/seahorse_miracle_600x375.png">
+    </div>
+    <div>
+      <img src="images/snail_fronds_600x375.png">
+    </div>
+    <div>
+      <img src="images/startfruit_600x375.png">
+    </div>
+    <div>
+      <img src="images/the_church_of_colour_600x375.png">
+    </div>
+    <div>
+      <img src="images/tricolore_600x375.png">
+    </div>
+    <div>
+      <img src="images/trispoke_600x375.png">
+    </div>
+    <div>
+      <img src="images/uzumaki_600x375.png">
+    </div>
+        <div>
+      <img src="images/angel_600x375.png">
+    </div>
+    <div>
+      <img src="images/bejeweled_spiral_600x375.png">
+    </div>
+    <div>
+      <img src="images/carpet_600x375.png">
+    </div>
+    <div>
+      <img src="images/dust_600x375.png">
+    </div>
+    <div>
+      <img src="images/fracture_600x375.png">
+    </div>
+    <div>
+      <img src="images/gem_alert_600x375.png">
+    </div>
+    <div>
+      <img src="images/hades_600x375.png">
+    </div>
+    <div>
+      <img src="images/lowest_to_highest_res_600x375.png">
+    </div>
+    <div>
+      <img src="images/pillbox_600x375.png">
+    </div>
+    <div>
+      <img src="images/seahorse_miracle_600x375.png">
+    </div>
+    <div>
+      <img src="images/snail_fronds_600x375.png">
+    </div>
+    <div>
+      <img src="images/startfruit_600x375.png">
+    </div>
+    <div>
+      <img src="images/the_church_of_colour_600x375.png">
+    </div>
+    <div>
+      <img src="images/tricolore_600x375.png">
+    </div>
+    <div>
+      <img src="images/trispoke_600x375.png">
+    </div>
+    <div>
+      <img src="images/uzumaki_600x375.png">
+    </div>
+  </div>
+
+  <div class="container">
+    <label for="viewports">Select your screen resolution:</label>
+    <select id="resolution">
+      <option value="1280_720">1280x720</option>
+      <option value="1280_800">1280x800</option>
+      <option value="1920_1080">1920x1080</option>
+      <option value="1920_1200" selected="selected">1920x1200</option>
+      <option value="2560_1440">2560x1440</option>
+      <option value="3840_2160">3840x2160</option>
+    </select>
+    <a href="renderer/index.html" id="renderer-link">Go to Renderer</a>
+  </div>
 </body>
+
+<script>
+  const RESOLUTION_SELECTOR = () => document.getElementById('resolution');
+  const RENDERER_ANCHOR     = () => document.getElementById('renderer-link');
+  const RENDER_LINK_TEXT    = () => `renderer/index.html?resolution=`;
+
+  RESOLUTION_SELECTOR().addEventListener("click", set_renderer_link, false);
+
+  function set_renderer_link()
+  {
+    RENDERER_ANCHOR().setAttribute('href', get_renderer_link());
+  }
+
+  function get_renderer_link()
+  {
+    return RENDER_LINK_TEXT() + RESOLUTION_SELECTOR().value;
+  }
+
+  /* Run on page load to reflect default option. */
+  set_renderer_link();
+</script>
 </html>

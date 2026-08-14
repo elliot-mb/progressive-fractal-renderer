@@ -17,6 +17,8 @@ class text_display
 
   static #frame_id = 0;
 
+  static #offset = new complex();
+
   static #spinner_frames = "\\|/-";
 
   static #spinner_frame_num = text_display.#spinner_frames.length;
@@ -25,9 +27,11 @@ class text_display
   {
     if(!text_display.#stopped)
     {
-      text_display.#elem.textContent = `[click to stop] `+
-                                        `render mode '${text_display.#render_mode}' ` +
-                                        `${text_display.#iter_count} iterations ` +
+      text_display.#elem.textContent = `[Kill Renderer] `+
+                                        `render mode '${text_display.#render_mode}', ` +
+                                        `${text_display.#iter_count} iterations, ` +
+                                        `c=${utils.round_to_n_dp(text_display.#offset.a, 2)}+
+                                         ${utils.round_to_n_dp(text_display.#offset.b, 2)}i, ` +
                                         `${text_display.#is_idle 
                                         ? 'idle'
                                         : (`${text_display.#spinner_frames[
@@ -92,5 +96,10 @@ class text_display
   static set_increasing()
   {
     text_display.#iteration_increase = true;
+  }
+
+  static set_offset(c)
+  {
+    text_display.#offset = c;
   }
 }

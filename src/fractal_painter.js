@@ -15,9 +15,6 @@ class fractal_painter
   static #iteration_step = 50;
   /* Iterations before we colour it black. */
   static #max_iterations = fractal_painter.#starting_max_iterations;
-  /* Canvas information for transforming pixels to around the origin. */
-  static #canvas_width  = document.getElementById('canvas').width;
-  static #canvas_height = document.getElementById('canvas').height;
   /* Iteration cache. */
   static #iteration_cache;
     /* Escape number cache. */
@@ -197,7 +194,6 @@ class fractal_painter
    */
   static paint(px_x, px_y, use_cache = true, process_pixel = true)
   {
-
     const iter_cache_val = fractal_painter.#iteration_cache[px_y][px_x];
     const enum_cache_val = fractal_painter.#escape_number_cache[px_y][px_x];
     /* Lookup to see if it exists in the cache already, and is not max iterations. */
@@ -247,6 +243,11 @@ class fractal_painter
   {
     fractal_painter.#c = c;
     fractal_painter.#r = 0.5 + Math.sqrt(0.25 + c.mag());
+  }
+
+  static get_c()
+  {
+    return new complex(fractal_painter.#c.a, fractal_painter.#c.b);
   }
 
   /**

@@ -1,46 +1,74 @@
-:root {
-  --ratio-width: 16;
-  --ratio-height: 10;
-  --scaled-view-height: calc((100vh * var(--ratio-width)) / var(--ratio-height));
-  --canvas-width:       min(100vw, var(--scaled-view-height)); 
+:root
+{
+  --image-count: 16;
+  --image-size: 20rem;
+  --loop-speed: 64s;
+  --aspect-ratio: 16/10;
+  --inverse-aspect-ratio: 10/16;
 }
 
-html, body{
-  background-color: #000000ff;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
+body
+{
   font-family:'Courier New', Courier, monospace;
+  padding: 0;
+  margin: 0;
 }
 
-#container{
-  overflow: hidden;
+.header
+{
+  width: 100%;
+  padding: 2rem 2rem 1rem 2rem;
+  background-color: rgb(109, 116, 217);
+  color: white;
 }
 
-.overlap{
-  display: relative;
-  padding-left: max(calc(50vw - (50vh * var(--ratio-width) / var(--ratio-height))), 0px);
-  padding-top: max(calc(50vh - (50vw * var(--ratio-height) / var(--ratio-width))), 0px);
+.container
+{
+  margin: 0 auto;
+  padding: 2rem;
+  max-width: 80rem;
+  background-color: rgb(214, 217, 255);
+  height: 100%;
 }
 
-#canvas{
-  z-index: 0;
-  position: absolute; 
-  height: min(calc(100vw * var(--ratio-height) / var(--ratio-width)), 100vh); 
+.container a
+{
+  float: right;
 }
 
-.status-text:hover{
-  cursor: pointer;
+.carousel {
+  padding: 0;
+  margin: 1rem 0rem 0.75rem 0;
+  display: grid;
+  grid-auto-columns: var(--image-size);
+  grid-auto-flow: column;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+  div {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  img {
+    width: var(--image-size);
+    aspect-ratio: var(--aspect-ratio);
+    object-fit: cover;
+  }
+  animation-name: move;
+  animation-duration: var(--loop-speed);
+  animation-iteration-count: infinite;
+  animation-direction: right;
+  animation-timing-function: linear;
 }
 
-.text-box{   
-  color: rgb(0, 255, 255);
-  mix-blend-mode:difference;
-  z-index: 1;
-  position: absolute;
-  top: 0;
-  left: 0; 
-  margin: 0.25rem 1rem 0.25rem 1rem;
-}
 
+@keyframes move {
+  0% {
+    margin-left: calc(-1 * var(--image-size));
+  }
+  100% {
+    margin-left: calc((-1 * var(--image-size) * var(--image-count)) - var(--image-size));
+  }
+}

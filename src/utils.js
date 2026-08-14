@@ -74,4 +74,10 @@ class utils
   {
     utils.ctx.putImageData(utils.canvas_img, 0, 0);
   }
+
+  static round_to_n_dp(x, n)
+  {
+    const rounding_const = Math.pow(10, n);
+    return Math.round(x * rounding_const) / rounding_const;
+  }
 }

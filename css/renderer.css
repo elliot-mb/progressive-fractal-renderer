@@ -1,0 +1,47 @@
+:root {
+  --ratio-width: 16;
+  --ratio-height: 9;
+  --scaled-view-height: calc((100vh * var(--ratio-width)) / var(--ratio-height));
+  --canvas-width:       min(100vw, var(--scaled-view-height)); 
+}
+
+html, body{
+  background-color: #000000ff;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family:'Courier New', Courier, monospace;
+}
+
+#container{
+  overflow: hidden;
+}
+
+.overlap{
+  display: relative;
+  padding-left: max(calc(50vw - (50vh * var(--ratio-width) / var(--ratio-height))), 0px);
+  padding-top: max(calc(50vh - (50vw * var(--ratio-height) / var(--ratio-width))), 0px);
+}
+
+#canvas{
+  z-index: 0;
+  position: absolute; 
+  height: min(calc(100vw * var(--ratio-height) / var(--ratio-width)), 100vh); 
+}
+
+.status-text:hover{
+  cursor: pointer;
+}
+
+.text-box{   
+  color: rgb(0, 255, 255);
+  mix-blend-mode:difference;
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0; 
+  margin: 0.25rem 1rem 0.25rem 1rem;
+  font-size: small;
+}
+
