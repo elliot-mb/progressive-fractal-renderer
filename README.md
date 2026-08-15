@@ -2,11 +2,8 @@
 
 <img src="images/tricolore_600x375.png" width="375px">
 
-A progressive fractal renderer in pure javascript, with highly modifiable generation and colouring settings. 
-
-## Running
-
-Until this website is hosted, you may download and unzip this repository and open index.html.
+A progressive fractal renderer in pure javascript, with highly modifiable generation and colouring settings.\
+Visit the website [here](https://elliotmb.dev/progressive-fractal-renderer/).
 
 ## Controls
 
