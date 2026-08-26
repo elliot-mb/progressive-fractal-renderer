@@ -4,7 +4,7 @@
  */
 
 /* Primitive constants. */
-const PIXEL_SIZE = Math.round(2.0e-2 * Math.max(utils.CANVAS_HEIGHT, utils.CANVAS_WIDTH)); //px
+const PIXEL_SIZE = 20; //px
 /* Painter inputs. */
 const C_INIT_RADIUS = 0.7885;
 const C_ARG    = Math.PI;
@@ -176,6 +176,7 @@ function register_update()
   is_just_changed = USE_LO_RES_PREVIEW;
   rendering_detailed_view = false;
   text_display.set_active();
+  text_display.set_increasing();
   fractal_painter.set_max_iterations(50);
   fill.initialise_render_lists();
 }
