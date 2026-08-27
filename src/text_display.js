@@ -17,6 +17,10 @@ class text_display
 
   static #frame_id = 0;
 
+  static #zoom_text = '1';
+
+  static #cycles_per_frame = 1;
+
   static #offset = new complex();
 
   static #spinner_frames = "\\|/-";
@@ -32,6 +36,8 @@ class text_display
                                         `${text_display.#iter_count} iterations, ` +
                                         `c=${utils.round_to_n_dp(text_display.#offset.a, 2)}+
                                          ${utils.round_to_n_dp(text_display.#offset.b, 2)}i, ` +
+                                        `${this.#zoom_text}x zoom, ` + 
+                                        `${this.#cycles_per_frame} cycles, `+
                                         `${text_display.#is_idle 
                                         ? 'idle'
                                         : (`${text_display.#spinner_frames[
@@ -101,5 +107,15 @@ class text_display
   static set_offset(c)
   {
     text_display.#offset = c;
+  }
+
+  static set_zoom(n)
+  {
+    this.#zoom_text = n === 0 ? 'infinity' : utils.round_to_n_dp(1/n, 2);
+  }
+
+  static set_cycles_per_frame(n)
+  {
+    this.#cycles_per_frame = n;
   }
 }

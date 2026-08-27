@@ -15,9 +15,20 @@ const PAN_SPEED = 0.001;
 const ZOOM_SPEED = 0.1;
 /* Pixel width for pixelated view. */
 const PIXEL_VIEW_DURATION = 1000; //ms
+const PIXEL_VIEW_ITER_LIM = 200;
+const PIXEL_VIEW_ITER_STEP = 25;
+/* Pixel skip rate for computing iterations e.g. 2 checks every other pixel. */
+const COMPUTE_ITER_SPEEDUP = 2;
+const COMPUTE_ITER_TIMEOUT = 50;
 const PIXEL_OFFSET = Math.floor(PIXEL_SIZE / 2);
 
+/* Multiple cycles per frame render speed boosting. */
+let cycles_per_frame = 1;
+const FRAME_TIME_MIN_MS = 32;
+
 const USE_LO_RES_PREVIEW = true;
+
+let compute_iter_count_timeout_id = 0;
 
 let delta_time;
 let prev_time         = 0;
@@ -112,6 +123,7 @@ window.addEventListener('keydown', (event) => {
     }
     fractal_painter.set_c(c.add(del_c));
     register_update();
+    compute_iter_count_async_calls();
   }
   /* Decrease radius of c. */
   if(event_key_lower === 'f')
@@ -125,6 +137,7 @@ window.addEventListener('keydown', (event) => {
     }
     fractal_painter.set_c(c.sub(del_c));
     register_update();
+    compute_iter_count_async_calls();
   }
 
   /* Update the display in case it changes. */
@@ -159,6 +172,10 @@ function pan(event)
 function zoom(event)
 {
   fractal_painter.zoom_by(Math.sign(event.deltaY) * ZOOM_SPEED);
+  if(event.deltaY > 0)
+  {
+    compute_iter_count_async_calls();
+  }
   if(!text_display.get_is_stopped())
   {
     register_update();
@@ -177,7 +194,7 @@ function register_update()
   rendering_detailed_view = false;
   text_display.set_active();
   text_display.set_increasing();
-  fractal_painter.set_max_iterations(50);
+  compute_iter_count_async_calls();
   fill.initialise_render_lists();
 }
 
@@ -195,16 +212,61 @@ function render_computed_view()
   utils.update_pixels();
 }
 
+function compute_iter_count_sync()
+{
+  fractal_painter.set_max_iterations(50);
+  let is_screen_black = true;
+  while(is_screen_black && (fractal_painter.get_max_iterations() < PIXEL_VIEW_ITER_LIM))
+  {
+    for(let y = 0; y <= utils.CANVAS_HEIGHT - PIXEL_SIZE; y += (PIXEL_SIZE * COMPUTE_ITER_SPEEDUP))
+    {
+      for(let x = 0; x <= utils.CANVAS_WIDTH - PIXEL_SIZE; x += (PIXEL_SIZE * COMPUTE_ITER_SPEEDUP))
+      {
+        let px_x = x + PIXEL_OFFSET;
+        let px_y = y + PIXEL_OFFSET;
+        const col = fractal_painter.paint(px_x, px_y, false);
+        /* The screen is black if all previous pixels are black, and this pixel is not solved (black) */
+        is_screen_black = is_screen_black && (!fractal_painter.is_iteration_cache_solved_at(px_x, px_y));
+      }
+    }
+    /* Allow the user to see something when zoom levels are high (will increase lag). */
+    if(is_screen_black)
+    {
+      fractal_painter.set_max_iterations(fractal_painter.get_max_iterations() + PIXEL_VIEW_ITER_STEP);
+    }
+  }
+}
+
+/* All event driven calls should use this. */
+function compute_iter_count_async_calls()
+{
+  clearTimeout(compute_iter_count_timeout_id);
+
+  compute_iter_count_timeout_id = setTimeout(compute_iter_count_sync, COMPUTE_ITER_TIMEOUT);
+}
+
 function render_pixelated_view()
 {
+  let is_screen_black = true;
   for(let y = 0; y <= utils.CANVAS_HEIGHT - PIXEL_SIZE; y += PIXEL_SIZE)
   {
     for(let x = 0; x <= utils.CANVAS_WIDTH - PIXEL_SIZE; x += PIXEL_SIZE)
     {
-      const col = fractal_painter.paint(x + PIXEL_OFFSET, y + PIXEL_OFFSET, false);
+      let px_x = x + PIXEL_OFFSET;
+      let px_y = y + PIXEL_OFFSET;
+      const col = fractal_painter.paint(px_x, px_y, false);
+
       utils.ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.a})`;
       utils.ctx.fillRect(x, y, PIXEL_SIZE, PIXEL_SIZE);
+
+      is_screen_black = is_screen_black && (!fractal_painter.is_iteration_cache_solved_at(px_x, px_y));
     }
+  }
+
+  /* Allows panning to request higher iteration count. */
+  if(is_screen_black)
+  {
+    compute_iter_count_sync();
   }
 }
 
@@ -230,17 +292,25 @@ function main_loop(timestamp)
   /* Progressively draw the detailed fractal. */
   else if(!fill.is_render_list_empty())
   {
-
     if(!rendering_detailed_view)
     {
       /* Wipe the low-res fractal image. */
-      fractal_painter.reset_iterations();
       fractal_painter.reset_cache();
       utils.clear_pixels();
       rendering_detailed_view = true;
     }
 
-    fill.render_one_cycle();
+    if(delta_time < FRAME_TIME_MIN_MS)
+    {
+      cycles_per_frame++;
+    }
+    else
+    {
+      cycles_per_frame = Math.max(1, cycles_per_frame - 1);
+    }
+
+    /* If we're not rendering much and frame times are low, we adjust how many cycles we render in a frame. */
+    for(let i = 0; (i < cycles_per_frame); i++) fill.render_one_cycle();
 
     /* Only put image data when we're not using built-in methods for drawing. */
     utils.update_pixels();
@@ -251,6 +321,9 @@ function main_loop(timestamp)
     /* THEN reset the render list, because doing this clears the unsolved cache. */
     fill.initialise_render_lists_from_unsolved();
     fractal_painter.increase_iter();
+    
+    /* Reset this to stop causing lag for big perimeters. */
+    cycles_per_frame = 1;
   }
   /* There is no more black in the image. */
   else
@@ -259,6 +332,7 @@ function main_loop(timestamp)
   }    
       
   text_display.register_frame();
+  text_display.set_cycles_per_frame(cycles_per_frame);
 
   if(!text_display.get_is_stopped()) 
   {
@@ -276,6 +350,9 @@ function run_if_pass_all_tests()
     console.log(`run_if_pass_all_tests: starting main.`);
     text_display.set_render_mode(fractal_painter.get_render_mode_name());
     register_update();
+    compute_iter_count_sync();
+    /* Sets text display zoom level. */
+    fractal_painter.zoom_by(0);
     main_loop(0);
   }
   else

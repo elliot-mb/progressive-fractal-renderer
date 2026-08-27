@@ -187,7 +187,7 @@ class fractal_painter
    * 
    * @param {integer} px_x       between 0 and 1 - maximum x value
    * @param {integer} px_y       between 0 and 1 - maximum y value
-   * @param {boolean} use_cache  Allows the function to draw on pre-computed iteration values. 
+   * @param {boolean} use_cache  Allows the function to draw on pre-computed iteration values. Still writes to cache. 
    * @param {boolean} process_pixel Allows the function to compute the colour of a pixel. If it does not exist in 
    *                                the cache already it is returned black.
    * @returns {rgba} The colour for this pixel.
@@ -257,6 +257,7 @@ class fractal_painter
   static zoom_by(k)
   {
     fractal_painter.#zoom_factor += (k * fractal_painter.#zoom_factor);
+    text_display.set_zoom(fractal_painter.#zoom_factor);
   }
 
   /**
